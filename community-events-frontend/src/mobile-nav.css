@@ -1,0 +1,14 @@
+@media (max-width: 620px) {
+  .sidebar nav {
+    grid-template-columns: repeat(9, minmax(0, 1fr));
+    overflow-x: auto;
+  }
+
+  .sidebar nav a,
+  .sidebar nav a:nth-child(n + 6) {
+    display: flex !important;
+    min-width: 0;
+    padding: 10px 2px;
+    justify-content: center;
+  }
+}
