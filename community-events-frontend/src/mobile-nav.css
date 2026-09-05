@@ -1,4 +1,26 @@
 @media (max-width: 620px) {
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: 248px;
+    height: 100vh;
+    z-index: 60;
+    padding: 22px 14px;
+    transform: translateX(-105%);
+    transition: transform .2s ease;
+  }
+
+  .sidebar.mobile-open { transform: translateX(0); }
+
+  .sidebar .brand { display: flex; padding: 0 7px 22px; }
+  .sidebar .brand > div:last-child { display: grid; font-size: inherit; }
+  .sidebar nav { grid-template-columns: 1fr; overflow: visible; }
+  .sidebar nav a,
+  .sidebar nav a:nth-child(n + 6) { display: flex !important; justify-content: flex-start; min-width: 0; padding: 11px 12px; }
+  .sidebar nav a span { display: inline; font-size: 13px; }
+  .sidebar-logout { display: flex; font-size: 13px; }
+  .mobile-nav-toggle { display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); }
+
   .sidebar nav {
     grid-template-columns: repeat(9, minmax(0, 1fr));
     overflow-x: auto;
@@ -11,4 +33,13 @@
     padding: 10px 2px;
     justify-content: center;
   }
+}
+
+@media (min-width: 621px) { .mobile-nav-toggle { display: none; } }
+
+@media (max-width: 620px) {
+  .sidebar nav { grid-template-columns: 1fr; overflow: visible; }
+  .sidebar nav a,
+  .sidebar nav a:nth-child(n + 6) { justify-content: flex-start; padding: 11px 12px; }
+  .sidebar nav a span { display: inline; font-size: 13px; }
 }
