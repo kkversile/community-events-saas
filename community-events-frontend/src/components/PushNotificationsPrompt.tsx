@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Bell } from 'lucide-react';
 import { api, unwrap } from '../api/client';
 
@@ -7,6 +7,21 @@ function base64ToBytes(value: string) { const padding = '='.repeat((4 - value.le
 export default function PushNotificationsPrompt() {
   const [state, setState] = useState<'idle' | 'working' | 'enabled' | 'unsupported' | 'denied' | 'error'>('idle');
   const [error, setError] = useState('');
+  useEffect(() => {
+    let active = true;
+    async function restore() {
+      if (!window.isSecureContext || !('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) { if (active) setState('unsupported'); return; }
+      if (Notification.permission === 'denied') { if (active) setState('denied'); return; }
+      if (Notification.permission !== 'granted') return;
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        if (active && subscription) setState('enabled');
+      } catch { /* Keep the enable button available for a retry. */ }
+    }
+    restore();
+    return () => { active = false; };
+  }, []);
   async function enable() {
     if (!window.isSecureContext || !('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) { setState('unsupported'); return; }
     setState('working');
