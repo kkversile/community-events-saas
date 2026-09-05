@@ -33,6 +33,7 @@ async function bootstrap() {
     'https://community-saas-care1dn3v-dvi-softs-projects.vercel.app',
     'https://community-events-saas-community-events-backend-g5bfnmfza.vercel.app',
     'https://community-events-saas-community-eve.vercel.app',
+    'https://vs-events-saas.vercel.app',
   ];
   app.enableCors({ origin: [...new Set(allowedOrigins)], credentials: false });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
