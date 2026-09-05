@@ -32,7 +32,8 @@ export class NotificationsService {
 
   async notifyCommunity(ctx: { tenantId: string; communityId: string }, payload: { title: string; message: string; url?: string }) {
     if (!this.configured) { this.logger.warn('Push keys are not configured; announcement stored without push delivery'); return; }
-    const rows = await this.prisma.pushSubscription.findMany({ where: ctx });
+    const { tenantId, communityId } = ctx;
+    const rows = await this.prisma.pushSubscription.findMany({ where: { tenantId, communityId } });
     await Promise.all(rows.map(async row => {
       try { await webpush.sendNotification({ endpoint: row.endpoint, keys: { p256dh: row.p256dh, auth: row.auth } }, JSON.stringify(payload)); }
       catch (error: any) { if (error?.statusCode === 404 || error?.statusCode === 410) await this.prisma.pushSubscription.delete({ where: { id: row.id } }); else this.logger.warn(`Push delivery failed: ${error?.message ?? error}`); }
