@@ -3,6 +3,7 @@ services:
     name: community-events-api
     runtime: node
     rootDir: community-events-backend
+    plan: free
     buildCommand: npm install && npx prisma generate && npm run build && npx prisma db push
     startCommand: npm run start:prod
     healthCheckPath: /api/v1/health
