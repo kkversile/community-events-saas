@@ -1,0 +1,11 @@
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { api, errorMessage, unwrap } from '../api/client';
+
+export default function RegisterPage() {
+  const [form, setForm] = useState({ communityCode: 'VSRES', buildingCode: 'A', unitNumber: '103', firstName: '', lastName: '', mobile: '', email: '', password: '' });
+  const [error, setError] = useState(''); const [done, setDone] = useState('');
+  const update = (key: string, value: string) => setForm({ ...form, [key]: value });
+  async function submit(e: any) { e.preventDefault(); setError(''); try { const r = unwrap<any>(await api.post('/auth/register', form)); setDone(`Registration complete for ${r.user.unit}. You can now sign in.`); } catch (err) { setError(errorMessage(err)); } }
+  return <div className="login-page"><div className="login-panel"><div className="login-logo">CH</div><h1>Register your flat</h1><p>No OTP required. Use the flat details provided by your community.</p><form onSubmit={submit}><div className="form-grid"><label>Community code<input value={form.communityCode} onChange={e => update('communityCode', e.target.value)} /></label><label>Building code<input value={form.buildingCode} onChange={e => update('buildingCode', e.target.value)} /></label><label>Flat number<input value={form.unitNumber} onChange={e => update('unitNumber', e.target.value)} /></label><label>Mobile number<input value={form.mobile} onChange={e => update('mobile', e.target.value)} /></label><label>First name<input value={form.firstName} onChange={e => update('firstName', e.target.value)} /></label><label>Last name<input value={form.lastName} onChange={e => update('lastName', e.target.value)} /></label><label className="span2">Email<input type="email" value={form.email} onChange={e => update('email', e.target.value)} /></label><label className="span2">Password<input type="password" minLength={8} value={form.password} onChange={e => update('password', e.target.value)} /></label></div>{error && <div className="form-error">{error}</div>}{done && <div className="success-box"><strong>{done}</strong></div>}<button className="btn btn-primary btn-block" disabled={!!done}>Create account</button></form><div className="auth-links"><Link to="/login">Back to sign in</Link></div></div></div>;
+}

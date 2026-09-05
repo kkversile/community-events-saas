@@ -1,0 +1,443 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  ACTIVE
+  INVITED
+  BLOCKED
+  DISABLED
+}
+enum MembershipRole {
+  OWNER
+  TENANT
+  FAMILY_MEMBER
+  PRIMARY_RESIDENT
+}
+enum PlatformRole {
+  SUPER_ADMIN
+  COMMUNITY_ADMIN
+  TREASURER
+  EVENT_ADMIN
+  RESIDENT
+}
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  ARCHIVED
+}
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+  ATTENDED
+  NO_SHOW
+}
+enum ContributionStatus {
+  NOT_STARTED
+  PARTIALLY_PAID
+  PAID
+  WAIVED
+  REFUNDED
+}
+enum PaymentStatus {
+  PENDING
+  MANUAL_PENDING
+  VERIFIED
+  FAILED
+  REJECTED
+  REFUNDED
+}
+enum PaymentMode {
+  UPI
+  CASH
+  BANK_TRANSFER
+  CHEQUE
+  PAYMENT_GATEWAY
+}
+
+model Tenant {
+  id          String      @id @default(uuid())
+  name        String
+  slug        String      @unique
+  isActive    Boolean     @default(true)
+  communities Community[]
+  users       User[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Community {
+  id            String              @id @default(uuid())
+  tenantId      String
+  name          String
+  code          String
+  address       String?
+  city          String?
+  state         String?
+  country       String?             @default("India")
+  timezone      String              @default("Asia/Kolkata")
+  isActive      Boolean             @default(true)
+  tenant        Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  buildings     Building[]
+  roles         UserCommunityRole[]
+  eventTypes    EventType[]
+  expenseCategories ExpenseCategory[]
+  events        Event[]
+  announcements Announcement[]
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  @@unique([tenantId, code])
+  @@index([tenantId])
+}
+
+model Building {
+  id          String    @id @default(uuid())
+  tenantId    String
+  communityId String
+  name        String
+  code        String
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  units       Unit[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  @@unique([communityId, code])
+  @@index([tenantId, communityId])
+}
+
+model Unit {
+  id            String           @id @default(uuid())
+  tenantId      String
+  communityId   String
+  buildingId    String
+  unitNumber    String
+  floor         String?
+  unitType      String?
+  isActive      Boolean          @default(true)
+  building      Building         @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  memberships   UnitMembership[]
+  bookings      EventBooking[]
+  waitlist      WaitlistEntry[]
+  contributions Contribution[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  @@unique([buildingId, unitNumber])
+  @@index([tenantId, communityId])
+}
+
+model User {
+  id           String              @id @default(uuid())
+  tenantId     String
+  firstName    String
+  lastName     String?
+  mobile       String
+  email        String?
+  passwordHash String?
+  mustChangePassword Boolean @default(true)
+  status       UserStatus          @default(INVITED)
+  tenant       Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  memberships  UnitMembership[]
+  roles        UserCommunityRole[]
+  bookings     EventBooking[]
+  waitlist     WaitlistEntry[]
+  payments     Payment[]
+  passwordResetTokens PasswordResetToken[]
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  @@unique([tenantId, mobile])
+  @@index([tenantId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  @@index([userId, expiresAt])
+}
+
+model UserCommunityRole {
+  id          String       @id @default(uuid())
+  tenantId    String
+  communityId String
+  userId      String
+  role        PlatformRole
+  community   Community    @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([communityId, userId, role])
+  @@index([tenantId, communityId])
+}
+
+model UnitMembership {
+  id          String         @id @default(uuid())
+  tenantId    String
+  communityId String
+  unitId      String
+  userId      String
+  role        MembershipRole
+  isPrimary   Boolean        @default(false)
+  startsAt    DateTime       @default(now())
+  endsAt      DateTime?
+  unit        Unit           @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  @@unique([unitId, userId])
+  @@index([tenantId, communityId, unitId])
+  @@index([userId])
+}
+
+model EventType {
+  id          String     @id @default(uuid())
+  tenantId    String
+  communityId String
+  code        String
+  name        String
+  description String?
+  isActive    Boolean    @default(true)
+  community   Community  @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  events      Event[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  @@unique([communityId, code])
+  @@index([tenantId, communityId])
+}
+
+model Event {
+  id                      String                 @id @default(uuid())
+  tenantId                String
+  communityId             String
+  eventTypeId             String?
+  name                    String
+  slug                    String
+  description             String?
+  startDate               DateTime
+  endDate                 DateTime
+  status                  EventStatus            @default(DRAFT)
+  imageUrl                String?
+  registrationOpenAt      DateTime?
+  registrationCloseAt     DateTime?
+  community               Community              @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  eventType               EventType?             @relation(fields: [eventTypeId], references: [id], onDelete: SetNull)
+  sessions                EventSession[]
+  bookings                EventBooking[]
+  waitlist                WaitlistEntry[]
+  campaigns               ContributionCampaign[]
+  expenses                Expense[]
+  announcements           Announcement[]
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime               @updatedAt
+  @@unique([communityId, slug])
+  @@index([tenantId, communityId, status])
+}
+
+model EventSession {
+  id            String          @id @default(uuid())
+  tenantId      String
+  communityId   String
+  eventId       String
+  name          String
+  sessionType   String              @default("DAILY")
+  sessionDate   DateTime
+  startTime     String?
+  endTime       String?
+  capacity      Int?
+  allowWaitlist Boolean         @default(true)
+  isActive      Boolean         @default(true)
+  event         Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  bookings      EventBooking[]
+  waitlist      WaitlistEntry[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  @@unique([eventId, sessionDate, name])
+  @@index([tenantId, communityId, eventId])
+  @@index([eventId, sessionDate])
+}
+
+model EventBooking {
+  id          String        @id @default(uuid())
+  tenantId    String
+  communityId String
+  eventId     String
+  sessionId   String
+  unitId      String
+  userId      String
+  adults      Int           @default(0)
+  children    Int           @default(0)
+  seniors     Int           @default(0)
+  notes       String?
+  status      BookingStatus @default(CONFIRMED)
+  event       Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  session     EventSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  unit        Unit          @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  bookedAt    DateTime      @default(now())
+  cancelledAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  @@unique([sessionId, unitId])
+  @@unique([eventId, unitId])
+  @@index([tenantId, eventId])
+  @@index([sessionId, status])
+}
+
+model WaitlistEntry {
+  id          String       @id @default(uuid())
+  tenantId    String
+  communityId String
+  eventId     String
+  sessionId   String
+  unitId      String
+  userId      String
+  position    Int
+  adults      Int          @default(0)
+  children    Int          @default(0)
+  seniors     Int          @default(0)
+  notes       String?
+  promotedAt  DateTime?
+  cancelledAt DateTime?
+  event       Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  session     EventSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  unit        Unit         @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Restrict)
+  createdAt   DateTime     @default(now())
+  @@unique([sessionId, unitId])
+  @@unique([eventId, unitId])
+  @@index([sessionId, position])
+}
+
+model ContributionCampaign {
+  id            String         @id @default(uuid())
+  tenantId      String
+  communityId   String
+  eventId       String
+  name          String
+  amountPerUnit Decimal        @db.Decimal(12, 2)
+  isMandatory   Boolean        @default(false)
+  startsAt      DateTime?
+  endsAt        DateTime?
+  event         Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  contributions Contribution[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  @@unique([eventId])
+  @@index([tenantId, communityId, eventId])
+}
+
+model Contribution {
+  id             String             @id @default(uuid())
+  tenantId       String
+  communityId    String
+  campaignId     String
+  unitId         String
+  expectedAmount Decimal            @db.Decimal(12, 2)
+  paidAmount     Decimal            @default(0) @db.Decimal(12, 2)
+  status         ContributionStatus @default(NOT_STARTED)
+  campaign       ContributionCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  unit           Unit               @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  payments       Payment[]
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  @@unique([campaignId, unitId])
+  @@index([tenantId, communityId])
+}
+
+model Payment {
+  id             String        @id @default(uuid())
+  tenantId       String
+  communityId    String
+  contributionId String
+  userId         String?
+  amount         Decimal       @db.Decimal(12, 2)
+  mode           PaymentMode
+  status         PaymentStatus @default(MANUAL_PENDING)
+  transactionRef String?
+  remarks        String?
+  paidAt         DateTime?
+  verifiedAt     DateTime?
+  verifiedBy     String?
+  contribution   Contribution  @relation(fields: [contributionId], references: [id], onDelete: Cascade)
+  user           User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  @@index([tenantId, communityId, status])
+  @@index([contributionId])
+  @@index([transactionRef])
+}
+
+model ExpenseCategory {
+  id          String      @id @default(uuid())
+  tenantId    String
+  communityId String
+  code        String
+  name        String
+  isActive    Boolean     @default(true)
+  community   Community   @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  expenses    Expense[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  @@unique([communityId, code])
+}
+
+model Expense {
+  id          String           @id @default(uuid())
+  tenantId    String
+  communityId String
+  eventId     String
+  categoryId  String?
+  description String
+  vendorName  String?
+  amount      Decimal          @db.Decimal(12, 2)
+  expenseDate DateTime
+  receiptUrl  String?
+  event       Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  category    ExpenseCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  @@index([tenantId, communityId, eventId])
+}
+
+model Announcement {
+  id          String     @id @default(uuid())
+  tenantId    String
+  communityId String
+  eventId     String?
+  title       String
+  message     String
+  isImportant Boolean    @default(false)
+  publishedAt DateTime?
+  community   Community  @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  event       Event?     @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  @@index([tenantId, communityId, publishedAt])
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  tenantId    String
+  communityId String?
+  actorUserId String?
+  entityType  String
+  entityId    String
+  action      String
+  oldValue    Json?
+  newValue    Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  @@index([tenantId, communityId])
+  @@index([entityType, entityId])
+}

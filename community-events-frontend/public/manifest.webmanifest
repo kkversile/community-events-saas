@@ -1,0 +1,9 @@
+{
+  "name": "CommunityHub Events",
+  "short_name": "CommunityHub",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f7fb",
+  "theme_color": "#6f3bf5",
+  "description": "Community event registration, contributions and committee operations."
+}

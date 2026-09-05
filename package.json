@@ -1,0 +1,22 @@
+{
+  "name": "community-events-saas",
+  "private": true,
+  "workspaces": [
+    "community-events-backend",
+    "community-events-frontend"
+  ],
+  "scripts": {
+    "postinstall": "npm --workspace community-events-backend run prisma:generate",
+    "dev": "node scripts/dev.mjs",
+    "dev:no-docker": "node scripts/dev-no-docker.mjs",
+    "build": "npm run build --workspaces",
+    "db:reset": "npm --workspace community-events-backend run db:reset",
+    "db:studio": "npm --workspace community-events-backend run prisma:studio",
+    "start": "npm run dev",
+    "verify": "npm run build",
+    "dev:apps": "concurrently -k -n API,WEB \"npm --workspace community-events-backend run start:dev\" \"npm --workspace community-events-frontend run dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

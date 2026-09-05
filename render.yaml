@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: community-events-api
+    runtime: node
+    rootDir: community-events-backend
+    buildCommand: npm install && npx prisma generate && npm run build && npx prisma db push
+    startCommand: npm run start:prod
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        sync: false

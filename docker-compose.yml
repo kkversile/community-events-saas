@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: community-events-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: community
+      POSTGRES_PASSWORD: community
+      POSTGRES_DB: community_events
+    ports:
+      - "5437:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U community -d community_events"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - community_events_pgdata:/var/lib/postgresql/data
+volumes:
+  community_events_pgdata:

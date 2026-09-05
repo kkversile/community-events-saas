@@ -1,0 +1,6 @@
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common'; import { PlatformRole } from '@prisma/client'; import { PrismaService } from '../prisma/prisma.service'; import { CurrentContext } from '../common/decorators/current-context.decorator'; import { Roles } from '../common/decorators/roles.decorator'; import { JwtAuthGuard } from '../common/guards/jwt-auth.guard'; import { RolesGuard } from '../common/guards/roles.guard'; import { RequestContext } from '../common/types/request-context'; import { CreateAnnouncementDto } from './announcements.dto';
+@Controller('announcements') @UseGuards(JwtAuthGuard,RolesGuard)
+export class AnnouncementsController{constructor(private prisma:PrismaService){}
+ @Get() async list(@CurrentContext() c:RequestContext){return{success:true,data:await this.prisma.announcement.findMany({where:{tenantId:c.tenantId,communityId:c.communityId,publishedAt:{not:null}},orderBy:{publishedAt:'desc'},take:20})}}
+ @Post() @Roles(PlatformRole.COMMUNITY_ADMIN,PlatformRole.EVENT_ADMIN,PlatformRole.SUPER_ADMIN) async create(@CurrentContext() c:RequestContext,@Body() d:CreateAnnouncementDto){return{success:true,data:await this.prisma.announcement.create({data:{tenantId:c.tenantId,communityId:c.communityId,eventId:d.eventId,title:d.title,message:d.message,isImportant:d.isImportant??false,publishedAt:new Date()}})}}
+}
