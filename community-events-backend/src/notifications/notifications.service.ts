@@ -21,10 +21,11 @@ export class NotificationsService {
   publicKey() { return this.config.get<string>('VAPID_PUBLIC_KEY') ?? null; }
 
   async saveSubscription(ctx: { tenantId: string; communityId: string; userId: string }, subscription: Subscription) {
+    const { tenantId, communityId, userId } = ctx;
     return this.prisma.pushSubscription.upsert({
       where: { endpoint: subscription.endpoint },
-      create: { ...ctx, endpoint: subscription.endpoint, p256dh: subscription.keys.p256dh, auth: subscription.keys.auth },
-      update: { ...ctx, p256dh: subscription.keys.p256dh, auth: subscription.keys.auth },
+      create: { tenantId, communityId, userId, endpoint: subscription.endpoint, p256dh: subscription.keys.p256dh, auth: subscription.keys.auth },
+      update: { tenantId, communityId, userId, p256dh: subscription.keys.p256dh, auth: subscription.keys.auth },
     });
   }
 
