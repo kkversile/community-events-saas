@@ -1,1 +1,1 @@
-import { Module } from '@nestjs/common'; import { AnnouncementsController } from './announcements.controller'; @Module({controllers:[AnnouncementsController]}) export class AnnouncementsModule {}
+import { Module } from '@nestjs/common'; import { AnnouncementsController } from './announcements.controller'; import { NotificationsModule } from '../notifications/notifications.module'; @Module({imports:[NotificationsModule],controllers:[AnnouncementsController]}) export class AnnouncementsModule {}
