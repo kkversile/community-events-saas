@@ -1,0 +1,3 @@
+.modal .btn-primary:disabled { position: relative; color: transparent !important; pointer-events: none; }
+.modal .btn-primary:disabled::after { content: ''; position: absolute; width: 15px; height: 15px; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; border-radius: 50%; animation: button-spin .7s linear infinite; }
+@keyframes button-spin { to { transform: rotate(360deg); } }
