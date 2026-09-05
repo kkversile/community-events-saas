@@ -24,7 +24,16 @@ async function bootstrap() {
     });
     next();
   });
-  app.enableCors({ origin: (config.get<string>('FRONTEND_URL') ?? 'http://localhost:3004').split(','), credentials: false });
+  const configuredOrigins = (config.get<string>('FRONTEND_URL') ?? 'http://localhost:3004')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+  const allowedOrigins = [
+    ...configuredOrigins,
+    'https://community-saas-care1dn3v-dvi-softs-projects.vercel.app',
+    'https://community-events-saas-community-events-backend-g5bfnmfza.vercel.app',
+  ];
+  app.enableCors({ origin: [...new Set(allowedOrigins)], credentials: false });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
   app.useGlobalFilters(new ApiExceptionFilter());
   const swaggerConfig = new DocumentBuilder().setTitle('Community Events API').setVersion('1.0').addBearerAuth().build();
