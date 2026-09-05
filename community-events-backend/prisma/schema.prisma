@@ -151,10 +151,26 @@ model User {
   waitlist     WaitlistEntry[]
   payments     Payment[]
   passwordResetTokens PasswordResetToken[]
+  pushSubscriptions PushSubscription[]
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
   @@unique([tenantId, mobile])
   @@index([tenantId])
+}
+
+model PushSubscription {
+  id          String   @id @default(uuid())
+  tenantId    String
+  communityId String
+  userId      String
+  endpoint    String   @unique
+  p256dh      String
+  auth        String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@index([tenantId, communityId])
+  @@index([userId])
 }
 
 model PasswordResetToken {

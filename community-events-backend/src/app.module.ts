@@ -16,6 +16,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { AnnouncementsModule } from './announcements/announcements.module';
 import { HealthController } from './health.controller';
 import { SecurityModule } from './common/security.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   controllers: [HealthController],
@@ -24,6 +25,7 @@ import { SecurityModule } from './common/security.module';
     PrismaModule,
     AuthModule,
     SecurityModule,
+    NotificationsModule,
     MastersModule,
     BuildingsModule,
     UnitsModule,
