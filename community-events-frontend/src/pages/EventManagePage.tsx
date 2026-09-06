@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   CalendarClock,
   Download,
@@ -159,6 +159,7 @@ function SessionForm({
 }
 export default function EventManagePage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const [message, setMessage] = useState("");
   const [editing, setEditing] = useState<any>(null);
@@ -292,6 +293,7 @@ export default function EventManagePage() {
           <button onClick={() => setMessage("")}>x</button>
         </div>
       )}
+      <div className="event-subnav"><button className="btn btn-primary">Event setup</button><button className="btn btn-secondary" onClick={() => navigate(`/admin/events/${id}/attendees`)}><UsersRound size={16} /> Attendees ({e._count?.bookings ?? 0})</button></div>
       <div className="setup-grid">
         <Card>
           <div className="setup-head">
