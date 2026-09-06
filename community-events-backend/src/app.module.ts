@@ -17,6 +17,7 @@ import { AnnouncementsModule } from './announcements/announcements.module';
 import { HealthController } from './health.controller';
 import { SecurityModule } from './common/security.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { OnboardingModule } from './onboarding/onboarding.module';
 
 @Module({
   controllers: [HealthController],
@@ -26,6 +27,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     AuthModule,
     SecurityModule,
     NotificationsModule,
+    OnboardingModule,
     MastersModule,
     BuildingsModule,
     UnitsModule,
